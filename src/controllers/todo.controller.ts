@@ -72,6 +72,7 @@ export class TodoController {
       limit: pageSize,
       offset: (page - 1) * pageSize, // 計算 offset
       where: {
+        is_deleted: false,
         ...(title && {title: {like: `%${title}%`}}),
         ...(subtitle && {subtitle: {like: `%${subtitle}%`}}),
         ...(status && {status}),
@@ -95,10 +96,14 @@ export class TodoController {
     @param.filter(Todo, {exclude: 'where'}) filter?: FilterExcludingWhere<Todo>,
   ): Promise<Todo> {
     // return this.todoRepository.findById(id, filter);
-    return this.todoRepository.findById(id, {
-      ...filter,
+    const findFilter: Filter<Todo> = {
       include: [{relation: 'items'}], // 包含 items
-    });
+      where: {
+        is_deleted: false,
+      },
+    };
+
+    return this.todoRepository.findById(id, findFilter);
   }
 
   @patch('/todos/{id}')
@@ -116,7 +121,7 @@ export class TodoController {
     })
     todo: Todo,
   ): Promise<void> {
-    await this.todoRepository.updateById(id, todo);
+    await this.todoRepository.updateById(id, {...todo, is_deleted: false});
   }
 
   @put('/todos/{id}')
@@ -127,17 +132,15 @@ export class TodoController {
     @param.path.number('id') id: number,
     @requestBody() todo: Todo,
   ): Promise<void> {
-    await this.todoRepository.replaceById(id, todo);
+    await this.todoRepository.replaceById(id, {...todo, is_deleted: false});
   }
 
+  //軟刪除
   @del('/todos/{id}')
   @response(204, {
     description: '軟刪除 Todo by Id',
   })
-  async deleteById(@param.path.number('id') id: number): Promise<void> {
-    await this.todoRepository.updateById(id, {
-      status: 'DELETED',
-      updated_at: new Date().toISOString(),
-    });
+  async softDeleteById(@param.path.number('id') id: number): Promise<void> {
+    await this.todoRepository.softDeleteById(id);
   }
 }

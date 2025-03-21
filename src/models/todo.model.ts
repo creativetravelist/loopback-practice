@@ -1,4 +1,4 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Entity, hasMany, model, property} from '@loopback/repository';
 import {Item} from './item.model';
 
 @model()
@@ -36,6 +36,12 @@ export class Todo extends Entity {
     type: 'date',
   })
   updated_at?: string;
+
+  @property({
+    type: 'boolean',
+    default: false,
+  })
+  is_deleted: boolean;
 
   @hasMany(() => Item, {keyTo: 'todo_id'})
   items: Item[];
