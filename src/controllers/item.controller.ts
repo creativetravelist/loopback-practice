@@ -3,6 +3,7 @@ import {
   del,
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   patch,
   post,
@@ -11,12 +12,14 @@ import {
   response,
 } from '@loopback/rest';
 import {Item} from '../models';
-import {ItemRepository} from '../repositories';
+import {ItemRepository, TodoRepository} from '../repositories';
 
 export class ItemController {
   constructor(
     @repository(ItemRepository)
     public itemRepository: ItemRepository,
+    @repository(TodoRepository)
+    public todoRepository: TodoRepository,
   ) {}
 
   @post('/items')
@@ -37,6 +40,15 @@ export class ItemController {
     })
     item: Omit<Item, 'id'>,
   ): Promise<Item> {
+    if (!item.todo_id) {
+      throw new HttpErrors.BadRequest('todo_id is required');
+    }
+
+    const todoExists = await this.todoRepository.exists(item.todo_id);
+    if (!todoExists) {
+      throw new HttpErrors.NotFound(`todo_id ${item.todo_id} not found`);
+    }
+
     if (item.completed_at === null) {
       delete item.completed_at;
     }
