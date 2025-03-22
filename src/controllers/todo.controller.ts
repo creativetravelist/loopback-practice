@@ -72,10 +72,9 @@ export class TodoController {
       limit: pageSize,
       offset: (page - 1) * pageSize, // 計算 offset
       where: {
-        is_deleted: false,
         ...(title && {title: {like: `%${title}%`}}),
         ...(subtitle && {subtitle: {like: `%${subtitle}%`}}),
-        ...(status && {status}),
+        ...(status && {status: {neq: 'DELETED'}}),
       },
     };
 
@@ -99,7 +98,7 @@ export class TodoController {
     const findFilter: Filter<Todo> = {
       include: [{relation: 'items'}], // 包含 items
       where: {
-        is_deleted: false,
+        status: {neq: 'DELETED'},
       },
     };
 
@@ -121,7 +120,7 @@ export class TodoController {
     })
     todo: Todo,
   ): Promise<void> {
-    await this.todoRepository.updateById(id, {...todo, is_deleted: false});
+    await this.todoRepository.updateById(id, todo);
   }
 
   @put('/todos/{id}')
@@ -132,7 +131,7 @@ export class TodoController {
     @param.path.number('id') id: number,
     @requestBody() todo: Todo,
   ): Promise<void> {
-    await this.todoRepository.replaceById(id, {...todo, is_deleted: false});
+    await this.todoRepository.replaceById(id, todo);
   }
 
   //軟刪除

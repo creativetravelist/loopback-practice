@@ -32,6 +32,6 @@ export class TodoRepository extends DefaultCrudRepository<
   }
 
   async softDeleteById(id: number): Promise<void> {
-    await this.updateById(id, {is_deleted: true});
+    await this.updateById(id, {status: 'DELETED'});
   }
 }

@@ -1,6 +1,8 @@
 import {Entity, hasMany, model, property} from '@loopback/repository';
 import {Item} from './item.model';
 
+export type TodoStatus = 'ACTIVE' | 'COMPLETED' | 'DELETED';
+
 @model()
 export class Todo extends Entity {
   @property({
@@ -19,8 +21,12 @@ export class Todo extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      enum: ['ACTIVE', 'COMPLETED', 'DELETED'],
+    },
+    default: 'ACTIVE',
   })
-  status: string;
+  status: TodoStatus;
 
   @property({
     type: 'string',
@@ -36,12 +42,6 @@ export class Todo extends Entity {
     type: 'date',
   })
   updated_at?: string;
-
-  @property({
-    type: 'boolean',
-    default: false,
-  })
-  is_deleted: boolean;
 
   @hasMany(() => Item, {keyTo: 'todo_id'})
   items: Item[];
